@@ -64,9 +64,9 @@ static void poll_input(EFI_SYSTEM_TABLE *system_table) {
         if (key.unicode_char == ' ') code = 0x39;
         if (key.unicode_char == 0x1b) code = 0x01;
         if (key.scan_code == 1) code = 0x48;
-        if (key.scan_code == 2) code = 0x4b;
+        if (key.scan_code == 2) code = 0x50;
         if (key.scan_code == 3) code = 0x4d;
-        if (key.scan_code == 4) code = 0x50;
+        if (key.scan_code == 4) code = 0x4b;
         if (code != 0)
             keys[code] = 0x81;
     }

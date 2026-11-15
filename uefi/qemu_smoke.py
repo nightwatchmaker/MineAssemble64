@@ -72,6 +72,7 @@ try:
     splash = splash_path.read_bytes()
     before = screen_path.read_bytes()
     game = game_path.read_bytes()
+
     marker = game.find(b"\n255\n")
     splash_marker = splash.find(b"\n255\n")
     before_marker = before.find(b"\n255\n")
@@ -80,6 +81,7 @@ try:
     pixels = game[marker + len(b"\n255\n"):]
     splash_pixels = splash[splash_marker + len(b"\n255\n"):]
     before_pixels = before[before_marker + len(b"\n255\n"):]
+
     nonzero = sum(1 for byte in pixels if byte)
     if nonzero == 0:
         raise RuntimeError("UEFI framebuffer screenshot was completely black")
@@ -89,7 +91,7 @@ try:
     input_changed = sum(1 for old, new in zip(before_pixels, pixels) if old != new)
     if input_changed == 0:
         raise RuntimeError("QEMU input events did not change the rendered game state")
-    print(f"UEFI smoke test passed: {nonzero} non-black bytes, {changed} splash changes, {input_changed} input changes")
+    print(f"UEFI smoke test passed: {nonzero} non-black bytes, {changed} splash changes, {input_changed} movement changes")
 finally:
     if process.poll() is None:
         process.kill()
