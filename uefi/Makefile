@@ -7,7 +7,7 @@ CFLAGS += -fno-stack-protector -fno-stack-check -fno-asynchronous-unwind-tables
 CFLAGS += -Wall -Wextra -Werror -Iuefi
 LDFLAGS := /subsystem:efi_application /entry:efi_main /nodefaultlib
 
-.PHONY: all image run smoke-test clean
+.PHONY: all image run smoke-test audit clean
 
 OVMF_CODE ?= /usr/share/edk2/x64/OVMF_CODE.4m.fd
 OVMF_VARS ?= /usr/share/edk2/x64/OVMF_VARS.4m.fd
@@ -50,6 +50,9 @@ run: image
 
 smoke-test: image qemu_smoke.py
 	python3 qemu_smoke.py
+
+audit: all symbol_audit.py
+	python3 symbol_audit.py
 
 clean:
 	rm -f *.obj assets.s BOOTX64.EFI mineassemble64.img mineassemble64-vars.fd

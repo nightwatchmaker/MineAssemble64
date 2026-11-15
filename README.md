@@ -380,6 +380,9 @@ captures a QEMU framebuffer, sends forward movement events through QMP, verifies
 is completely black. It also sends repeated forward movement events and requires
 the post-input game framebuffer to differ from the pre-input frame.
 
+Run `make uefi-audit` to verify the required x64 UEFI exports are present and
+BIOS-only IRQ/VGA symbols did not leak into the UEFI objects.
+
 The legacy 32-bit Multiboot target remains separate. Its GRUB header, VGA mode
 `0x13`, PIC/IDT handlers, PS/2 scan-code path, and fixed 32-bit linker layout
 are not included in the UEFI target. UEFI firmware does not provide BIOS video
