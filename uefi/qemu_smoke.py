@@ -20,7 +20,8 @@ qmp_path = root / "smoke-qmp.sock"
 screen_path = root / "smoke-screen.ppm"
 splash_path = root / "smoke-splash.ppm"
 game_path = root / "smoke-game.ppm"
-for path in (vars_copy, qmp_path, screen_path, splash_path, game_path):
+view_path = root / "smoke-view.ppm"
+for path in (vars_copy, qmp_path, screen_path, splash_path, game_path, view_path):
     path.unlink(missing_ok=True)
 shutil.copyfile(vars_template, vars_copy)
 
@@ -68,28 +69,38 @@ try:
             command_qmp(request_id, "send-key", {"keys": [{"type": "qcode", "data": key}]})
         time.sleep(1)
         command_qmp(20, "screendump", {"filename": str(game_path)})
-        command_qmp(21, "quit")
+        for request_id, key in enumerate(("k",) * 10, 21):
+            command_qmp(request_id, "send-key", {"keys": [{"type": "qcode", "data": key}]})
+        time.sleep(1)
+        command_qmp(31, "screendump", {"filename": str(view_path)})
+        command_qmp(32, "quit")
 
     process.wait(timeout=4)
     splash = splash_path.read_bytes()
     before = screen_path.read_bytes()
     game = game_path.read_bytes()
+    view = view_path.read_bytes()
 
     marker = game.find(b"\n255\n")
     splash_marker = splash.find(b"\n255\n")
     before_marker = before.find(b"\n255\n")
-    if marker < 0 or splash_marker < 0 or before_marker < 0:
+    view_marker = view.find(b"\n255\n")
+    if marker < 0 or splash_marker < 0 or before_marker < 0 or view_marker < 0:
         raise RuntimeError("QEMU did not produce valid PPM screenshots")
     pixels = game[marker + len(b"\n255\n"):]
     splash_pixels = splash[splash_marker + len(b"\n255\n"):]
     before_pixels = before[before_marker + len(b"\n255\n"):]
+    view_pixels = view[view_marker + len(b"\n255\n"):]
 
     nonzero = sum(1 for byte in pixels if byte)
     if nonzero == 0:
         raise RuntimeError("UEFI framebuffer screenshot was completely black")
     changed = sum(1 for before, after in zip(splash_pixels, pixels) if before != after)
     input_changed = sum(1 for old, new in zip(before_pixels, pixels) if old != new)
-    print(f"UEFI smoke test passed: {nonzero} non-black bytes, {changed} splash changes, {input_changed} movement changes")
+    view_changed = sum(1 for old, new in zip(pixels, view_pixels) if old != new)
+    if view_changed == 0:
+        raise RuntimeError("QEMU camera input did not change the rendered game state")
+    print(f"UEFI smoke test passed: {nonzero} non-black bytes, {changed} splash changes, {input_changed} movement changes, {view_changed} camera changes")
 finally:
     if process.poll() is None:
         process.kill()
@@ -97,5 +108,5 @@ finally:
     for path in (vars_copy, qmp_path):
         path.unlink(missing_ok=True)
     if not keep_frames:
-        for path in (screen_path, splash_path, game_path):
+        for path in (screen_path, splash_path, game_path, view_path):
             path.unlink(missing_ok=True)
