@@ -21,6 +21,7 @@ typedef EFI_STATUS (*EFI_TEXT_CLEAR_SCREEN)(EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *);
 typedef EFI_STATUS (*EFI_TEXT_RESET)(EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *, uint8_t);
 typedef EFI_STATUS (*EFI_LOCATE_PROTOCOL)(const void *, void *, void **);
 typedef EFI_STATUS (*EFI_STALL)(uint64_t);
+typedef EFI_STATUS (*EFI_GET_NEXT_MONOTONIC_COUNT)(uint64_t *);
 typedef EFI_STATUS (*EFI_GET_MEMORY_MAP)(uint64_t *, void *, uint64_t *, uint64_t *, uint32_t *);
 typedef EFI_STATUS (*EFI_ALLOCATE_POOL)(uint32_t, uint64_t, void **);
 typedef EFI_STATUS (*EFI_FREE_POOL)(void *);
@@ -101,7 +102,7 @@ struct EFI_BOOT_SERVICES {
     void *exit;
     void *unload_image;
     void *exit_boot_services;
-    void *get_next_monotonic_count;
+    EFI_GET_NEXT_MONOTONIC_COUNT get_next_monotonic_count;
     EFI_STALL stall;
     void *set_watchdog_timer;
     void *connect_controller;

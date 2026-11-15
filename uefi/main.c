@@ -106,8 +106,26 @@ static void clear_input_pulse(void) {
     dYaw = 0.0f;
 }
 
+static float frame_delta(EFI_SYSTEM_TABLE *system_table, uint64_t *last_ticks) {
+    uint64_t now;
+    if (!system_table->boot_services->get_next_monotonic_count ||
+        system_table->boot_services->get_next_monotonic_count(&now) != EFI_SUCCESS)
+        return 0.016f;
+    if (*last_ticks == 0) {
+        *last_ticks = now;
+        return 0.016f;
+    }
+    uint64_t elapsed = now - *last_ticks;
+    *last_ticks = now;
+    float dt = (float)elapsed / 10000000.0f;
+    if (dt < 0.001f) dt = 0.001f;
+    if (dt > 0.100f) dt = 0.100f;
+    return dt;
+}
+
 EFI_STATUS uefi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *system_table) {
     (void)image_handle;
+    uint64_t last_ticks = 0;
 
     print(system_table->con_out, (CHAR16 *)L"MineAssemble x64 UEFI port\r\n");
     if (!init_graphics(system_table)) {
@@ -121,7 +139,7 @@ EFI_STATUS uefi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *system_table) {
     for (;;) {
         poll_input(system_table);
         handle_input();
-        update(0.016f);
+        update(frame_delta(system_table, &last_ticks));
         draw_frame();
         present_indexed();
         clear_input_pulse();
