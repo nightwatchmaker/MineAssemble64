@@ -62,7 +62,7 @@ try:
         command_qmp(2, "screendump", {"filename": str(splash_path)})
         time.sleep(8)
         command_qmp(3, "screendump", {"filename": str(screen_path)})
-        for request_id, key in enumerate(("w", "a", "s", "d", "q", "e", "space", "up", "left", "right", "down"), 3):
+        for request_id, key in enumerate(("w",) * 10, 3):
             command_qmp(request_id, "send-key", {"keys": [{"type": "qcode", "data": key}]})
         time.sleep(1)
         command_qmp(20, "screendump", {"filename": str(game_path)})

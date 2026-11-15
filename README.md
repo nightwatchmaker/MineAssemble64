@@ -374,10 +374,9 @@ This produces `uefi/mineassemble64.img` with the standard
 
 With QEMU and OVMF installed, `make -C uefi run` launches the image directly.
 For a headless build-and-boot check, use `make uefi-smoke-test`; it boots OVMF,
-captures a QEMU framebuffer, sends movement/view/block-action key events through
-QMP, verifies the splash-to-game framebuffer transition, and fails if the result
-is completely black. Accepted input events also light a small green GOP status
-indicator, so the input path is observable in the captured frame.
+captures a QEMU framebuffer, sends forward movement events through QMP, verifies the splash-to-game framebuffer transition, and fails if the result
+is completely black. It also sends repeated forward movement events and requires
+the post-input game framebuffer to differ from the pre-input frame.
 
 The legacy 32-bit Multiboot target remains separate. Its GRUB header, VGA mode
 `0x13`, PIC/IDT handlers, PS/2 scan-code path, and fixed 32-bit linker layout
