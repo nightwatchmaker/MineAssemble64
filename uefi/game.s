@@ -43,7 +43,7 @@ render_buffer:  .zero 64000
 .globl sinf, cosf, absf, set_pos, set_view
 .globl init_world, get_block, set_block
 .globl handle_input, handle_collision
-.globl ray_dir, face_normal, tex_index, ray_color, draw_frame
+.globl ray_dir, face_normal, tex_index, ray_color, reticle_color, draw_frame
 .extern handle_key
 .extern raytrace
 
@@ -393,6 +393,33 @@ ray_color:
     add rsp, 120
     ret
 
+/* byte reticle_color(byte color): return an indexed inverse-color accent. */
+reticle_color:
+    push r10
+    push r11
+    and ecx, 255
+    mov eax, ecx
+    imul eax, 3
+    lea r10, palette
+    movzx edx, byte ptr [r10+rax]
+    movzx r8d, byte ptr [r10+rax+1]
+    movzx r9d, byte ptr [r10+rax+2]
+    cmp r9d, 63
+    je .reticle_sky
+    cmp r8d, edx
+    jg .reticle_grass
+    mov eax, 254
+    jmp .reticle_done_color
+.reticle_grass:
+    mov eax, 253
+    jmp .reticle_done_color
+.reticle_sky:
+    mov eax, 255
+.reticle_done_color:
+    pop r11
+    pop r10
+    ret
+
 /* Render the original 320x200 logical target into vga. */
 draw_frame:
     push r12
@@ -419,6 +446,29 @@ draw_frame:
     xor r8d, r8d
     call raytrace
     mov byte ptr [r13+r10], al
+
+    /* Restore the original 6-pixel crosshair at the logical screen center. */
+    cmp r14d, 157
+    jle .vertical_reticle
+    cmp r14d, 163
+    jge .vertical_reticle
+    cmp r11d, 100
+    jne .vertical_reticle
+    movzx ecx, byte ptr [r13+r10]
+    call reticle_color
+    mov byte ptr [r13+r10], al
+    jmp .reticle_done
+.vertical_reticle:
+    cmp r11d, 97
+    jle .reticle_done
+    cmp r11d, 103
+    jge .reticle_done
+    cmp r14d, 160
+    jne .reticle_done
+    movzx ecx, byte ptr [r13+r10]
+    call reticle_color
+    mov byte ptr [r13+r10], al
+.reticle_done:
     inc r10d
     inc r14d
     cmp r14d, 320
