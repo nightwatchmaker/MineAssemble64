@@ -61,6 +61,7 @@ try:
         time.sleep(1)
         command_qmp(2, "screendump", {"filename": str(splash_path)})
         time.sleep(8)
+        command_qmp(3, "screendump", {"filename": str(screen_path)})
         for request_id, key in enumerate(("w", "a", "s", "d", "q", "e", "space", "up", "left", "right", "down"), 3):
             command_qmp(request_id, "send-key", {"keys": [{"type": "qcode", "data": key}]})
         time.sleep(1)
@@ -69,20 +70,26 @@ try:
 
     process.wait(timeout=4)
     splash = splash_path.read_bytes()
+    before = screen_path.read_bytes()
     game = game_path.read_bytes()
     marker = game.find(b"\n255\n")
     splash_marker = splash.find(b"\n255\n")
-    if marker < 0 or splash_marker < 0:
+    before_marker = before.find(b"\n255\n")
+    if marker < 0 or splash_marker < 0 or before_marker < 0:
         raise RuntimeError("QEMU did not produce valid PPM screenshots")
     pixels = game[marker + len(b"\n255\n"):]
     splash_pixels = splash[splash_marker + len(b"\n255\n"):]
+    before_pixels = before[before_marker + len(b"\n255\n"):]
     nonzero = sum(1 for byte in pixels if byte)
     if nonzero == 0:
         raise RuntimeError("UEFI framebuffer screenshot was completely black")
     changed = sum(1 for before, after in zip(splash_pixels, pixels) if before != after)
     if changed == 0:
         raise RuntimeError("UEFI splash and game screenshots were identical")
-    print(f"UEFI smoke test passed: {nonzero} non-black bytes, {changed} splash-to-game changes")
+    input_changed = sum(1 for old, new in zip(before_pixels, pixels) if old != new)
+    if input_changed == 0:
+        raise RuntimeError("QEMU input events did not change the rendered game state")
+    print(f"UEFI smoke test passed: {nonzero} non-black bytes, {changed} splash changes, {input_changed} input changes")
 finally:
     if process.poll() is None:
         process.kill()

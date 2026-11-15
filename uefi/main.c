@@ -11,6 +11,7 @@ static uint32_t g_framebuffer_width;
 static uint32_t g_framebuffer_height;
 static uint32_t g_framebuffer_stride;
 static uint32_t g_pixel_format;
+static uint32_t g_input_events;
 
 extern uint8_t *vga;
 extern uint8_t keys[128];
@@ -67,8 +68,10 @@ static void poll_input(EFI_SYSTEM_TABLE *system_table) {
         if (key.scan_code == 2) code = 0x4b;
         if (key.scan_code == 3) code = 0x4d;
         if (key.scan_code == 4) code = 0x50;
-        if (code != 0)
+        if (code != 0) {
             keys[code] = 0x81;
+            ++g_input_events;
+        }
     }
 }
 
@@ -89,6 +92,8 @@ static void present_indexed(void) {
             uint32_t pixel = g_pixel_format == EFI_GRAPHICS_PIXEL_FORMAT_BGR
                 ? (red << 16) | (green << 8) | blue
                 : (blue << 16) | (green << 8) | red;
+            if (g_input_events != 0 && x < 16 && y < 16)
+                pixel = 0x0000ff00U;
             g_framebuffer[y * g_framebuffer_stride + x] = pixel;
         }
     }
