@@ -11,6 +11,7 @@ static uint32_t g_framebuffer_width;
 static uint32_t g_framebuffer_height;
 static uint32_t g_framebuffer_stride;
 static uint32_t g_pixel_format;
+static uint64_t g_framebuffer_size;
 
 extern uint8_t *vga;
 extern uint8_t keys[128];
@@ -57,7 +58,15 @@ static int init_graphics(EFI_SYSTEM_TABLE *system_table) {
     g_framebuffer_height = mode->info->vertical_resolution;
     g_framebuffer_stride = mode->info->pixels_per_scan_line;
     g_pixel_format = mode->info->pixel_format;
+    g_framebuffer_size = mode->framebuffer_size;
     return g_framebuffer != 0 && g_framebuffer_width != 0 && g_framebuffer_height != 0;
+}
+
+static void clear_framebuffer(void) {
+    uint64_t pixels = g_framebuffer_size / sizeof(uint32_t);
+    uint64_t index;
+    for (index = 0; index < pixels; ++index)
+        g_framebuffer[index] = 0;
 }
 
 static void poll_input(EFI_SYSTEM_TABLE *system_table) {
@@ -152,6 +161,9 @@ EFI_STATUS uefi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *system_table) {
     present_indexed();
     if (system_table->boot_services->stall)
         system_table->boot_services->stall(500000);
+    if (system_table->con_out && system_table->con_out->clear_screen)
+        system_table->con_out->clear_screen(system_table->con_out);
+    clear_framebuffer();
     init_world();
     print(system_table->con_out, (CHAR16 *)L"GOP ready; x64 UEFI game loop active\r\n");
 

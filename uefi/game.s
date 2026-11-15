@@ -442,7 +442,7 @@ draw_frame:
     xor r10d, r10d                    /* pixel index */
     xor r11d, r11d                    /* y */
     lea r12, [rsp+32]                /* ray direction */
-    mov r13, qword ptr [vga]
+    lea r13, render_buffer
 .row:
     xor r14d, r14d                    /* x */
 .pixel:
