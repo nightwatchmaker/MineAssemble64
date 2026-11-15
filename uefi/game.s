@@ -438,7 +438,7 @@ draw_frame:
     push r12
     push r13
     push r14
-    sub rsp, 80
+    sub rsp, 88
     xor r11d, r11d                    /* y */
     lea r12, [rsp+32]                /* ray direction */
     lea r13, render_buffer
@@ -449,6 +449,7 @@ draw_frame:
     mov edx, r14d
     mov r8d, r11d
     call ray_dir
+    mov dword ptr [rsp+72], r11d
     mov rcx, qword ptr [playerPos]
     mov qword ptr [rsp+48], rcx
     mov ecx, dword ptr [playerPos+8]
@@ -457,6 +458,7 @@ draw_frame:
     mov rdx, r12
     xor r8d, r8d
     call raytrace
+    mov r11d, dword ptr [rsp+72]
     mov byte ptr [rsp+64], al
     mov eax, r11d
     imul eax, 320
@@ -496,7 +498,7 @@ draw_frame:
     inc r11d
     cmp r11d, 200
     jb .row
-    add rsp, 80
+    add rsp, 88
     pop r14
     pop r13
     pop r12
