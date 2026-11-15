@@ -58,7 +58,11 @@ try:
         command_qmp(1, "qmp_capabilities")
         time.sleep(8)
         command_qmp(2, "screendump", {"filename": str(screen_path)})
-        command_qmp(3, "quit")
+        for request_id, key in enumerate(("w", "a", "s", "d", "q", "e", "space", "up", "left", "right", "down"), 3):
+            command_qmp(request_id, "send-key", {"keys": [{"type": "qcode", "data": key}]})
+        time.sleep(1)
+        command_qmp(20, "screendump", {"filename": str(screen_path)})
+        command_qmp(21, "quit")
 
     process.wait(timeout=4)
     data = screen_path.read_bytes()
