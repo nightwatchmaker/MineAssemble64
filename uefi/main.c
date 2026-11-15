@@ -61,6 +61,10 @@ static void poll_input(EFI_SYSTEM_TABLE *system_table) {
         if (key.unicode_char == 'd' || key.unicode_char == 'D') code = 0x20;
         if (key.unicode_char == 'q' || key.unicode_char == 'Q') code = 0x10;
         if (key.unicode_char == 'e' || key.unicode_char == 'E') code = 0x12;
+        if (key.unicode_char == 'i' || key.unicode_char == 'I') code = 0x48;
+        if (key.unicode_char == 'k' || key.unicode_char == 'K') code = 0x50;
+        if (key.unicode_char == 'j' || key.unicode_char == 'J') code = 0x4b;
+        if (key.unicode_char == 'l' || key.unicode_char == 'L') code = 0x4d;
         if (key.unicode_char == ' ') code = 0x39;
         if (key.unicode_char == 0x1b) code = 0x01;
         if (key.scan_code == 1) code = 0x48;
