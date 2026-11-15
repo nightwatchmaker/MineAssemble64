@@ -14,6 +14,7 @@ static uint32_t g_pixel_format;
 
 extern uint8_t *vga;
 extern uint8_t keys[128];
+extern uint8_t palette[768];
 extern void init_world(void);
 extern void handle_input(void);
 extern void update(float dt);
@@ -74,9 +75,9 @@ static void present_indexed(void) {
         uint32_t x;
         for (x = 0; x < 320 && x < g_framebuffer_width; ++x) {
             uint32_t index = vga[y * 320 + x];
-            uint32_t red = (index & 0x3fU) << 2;
-            uint32_t green = ((index * 3U) & 0x3fU) << 2;
-            uint32_t blue = ((index * 5U) & 0x3fU) << 2;
+            uint32_t red = palette[index * 3U] << 2;
+            uint32_t green = palette[index * 3U + 1U] << 2;
+            uint32_t blue = palette[index * 3U + 2U] << 2;
             uint32_t pixel = g_pixel_format == EFI_GRAPHICS_PIXEL_FORMAT_BGR
                 ? (red << 16) | (green << 8) | blue
                 : (blue << 16) | (green << 8) | red;

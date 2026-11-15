@@ -33,19 +33,13 @@ yawC:           .zero 4
 keys:           .zero 128
 world:          .zero 32768
 render_buffer:  .zero 64000
-/* The legacy palette/texture symbols remain ABI-compatible. The UEFI
-   presenter expands these indexed values to GOP pixels. */
-palette:        .zero 768
-tex_grass:      .zero 512
-tex_dirt:       .zero 512
-tex_grass_side: .zero 512
 
 .section .text
 
 .globl _fltused, vga, half_pi, neg_half_pi, zero, hFov, dPitch, dYaw, velocity
 .globl colTolerance, playerHeight, playerPos, pitch, pitchS, pitchC
 .globl yaw, yawS, yawC, keys, world, worldSX, worldSY, worldSZ, sunDir
-.globl palette, tex_grass, tex_dirt, tex_grass_side, render_buffer
+.globl render_buffer
 .globl sinf, cosf, absf, set_pos, set_view
 .globl init_world, get_block, set_block
 .globl handle_input, handle_collision
@@ -316,24 +310,55 @@ face_normal:
 
 /* int tex_index(vec3 *pos, int face) */
 tex_index:
-    xor eax, eax
+    /* Select the two fractional coordinates for the face. */
+    cmp edx, 0
+    je .u_z_v_y
+    cmp edx, 1
+    je .u_z_v_y
+    cmp edx, 2
+    je .u_x_v_z
+    cmp edx, 3
+    je .u_x_v_z
+    movss xmm0, dword ptr [rcx]
+    movss xmm1, dword ptr [rcx+4]
+    jmp .coords
+.u_z_v_y:
+    movss xmm0, dword ptr [rcx+8]
+    movss xmm1, dword ptr [rcx+4]
+    jmp .coords
+.u_x_v_z:
+    movss xmm0, dword ptr [rcx]
+    movss xmm1, dword ptr [rcx+8]
+.coords:
+    mulss xmm0, dword ptr [texture_scale]
+    mulss xmm1, dword ptr [texture_scale]
+    cvttss2si eax, xmm0
+    cvttss2si edx, xmm1
+    and eax, 15
+    and edx, 15
+    sub edx, 15
+    neg edx
+    imul eax, 16
+    add eax, edx
     ret
 
 /* uint8_t ray_color(int x,int y,int z,vec3 *pos,int tex,int face) */
 ray_color:
-    mov eax, r9d
     mov eax, dword ptr [rsp+40]
     cmp eax, 2
-    je .dirt_color
+    je .dirt_texture
     cmp eax, 3
-    je .grass_color
-    mov eax, 0x40
-    ret
-.dirt_color:
-    mov eax, 0x90
-    ret
-.grass_color:
-    mov eax, 0x20
+    je .grass_texture
+    lea r10, tex_grass_side
+    jmp .texture_selected
+.dirt_texture:
+    lea r10, tex_dirt
+    jmp .texture_selected
+.grass_texture:
+    lea r10, tex_grass
+.texture_selected:
+    mov eax, dword ptr [rsp+32]
+    movzx eax, byte ptr [r10+rax]
     ret
 
 /* Render the original 320x200 logical target into vga. */
@@ -384,3 +409,4 @@ fov:                .float 0.625
 aspect:             .float 1.6
 neg_aspect:         .float -1.6
 neg_one:            .float -1.0
+texture_scale:      .float 15.0
