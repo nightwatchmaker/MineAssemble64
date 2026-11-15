@@ -45,7 +45,7 @@ BOOTX64.EFI: entry.obj main.obj reference.obj assets.obj game.obj
 
 run: image
 	cp $(OVMF_VARS) mineassemble64-vars.fd
-	qemu-system-x86_64 -machine q35 -m 128M -drive if=pflash,format=raw,unit=0,readonly=on,file=$(OVMF_CODE) -drive if=pflash,format=raw,unit=1,file=mineassemble64-vars.fd -drive format=raw,file=mineassemble64.img
+	qemu-system-x86_64 -snapshot -machine q35 -m 128M -drive if=pflash,format=raw,unit=0,readonly=on,file=$(OVMF_CODE) -drive if=pflash,format=raw,unit=1,file=mineassemble64-vars.fd -drive format=raw,file=mineassemble64.img
 	rm -f mineassemble64-vars.fd
 
 smoke-test: image qemu_smoke.py
