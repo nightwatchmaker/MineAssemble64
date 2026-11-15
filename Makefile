@@ -19,7 +19,7 @@ ASMSRCS=$(wildcard src/*.asm)
 OBJS=$(CSRCS:.c=.o) $(ASMSRCS:.asm=.o)
 DEPS=$(OBJS:.o=.d)
 
-.PHONY: all clean uefi
+.PHONY: all clean uefi uefi-image
 
 all: mineassemble.bin mineassemble.elf
 
@@ -27,6 +27,9 @@ all: mineassemble.bin mineassemble.elf
 # historical 32-bit Multiboot build above.
 uefi:
 	$(MAKE) -C uefi
+
+uefi-image:
+	$(MAKE) -C uefi image
 
 # NOTE: linker script must be first dependency
 mineassemble.%: src/%.ld $(OBJS)

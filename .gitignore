@@ -6,3 +6,4 @@
 uefi/*.obj
 uefi/BOOTX64.EFI
 uefi/assets.s
+uefi/mineassemble64.img
