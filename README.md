@@ -344,6 +344,24 @@ License
 
 This project is licensed under the MIT license.
 
+x86-64 UEFI port
+----------------
+
+The `uefi` directory contains the new x86-64 UEFI entry layer. Build it with:
+
+```
+make uefi
+```
+
+This produces `uefi/BOOTX64.EFI`, a PE32+ UEFI application. The entry shim uses
+the Microsoft x64 ABI and the C layer locates the UEFI Graphics Output Protocol
+instead of programming VGA mode `0x13`. The original 32-bit Multiboot renderer,
+PIC/IDT keyboard path, and x87 stack-based calling convention are not silently
+treated as portable: they are the next migration slices. UEFI does not provide
+BIOS video memory or hardware IRQ services to an application, so those parts
+must be replaced with GOP framebuffer writes, UEFI input polling, and UEFI
+timing before the game loop can be enabled.
+
 Some derived work with compatible licensing is also included:
 
 - **init.asm**, **interrupts.asm** - Derived from [code by Maarten de Vries and Maurice Bos](https://github.com/m-ou-se/bootlib) (licensed under the MIT license)

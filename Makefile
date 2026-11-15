@@ -19,9 +19,14 @@ ASMSRCS=$(wildcard src/*.asm)
 OBJS=$(CSRCS:.c=.o) $(ASMSRCS:.asm=.o)
 DEPS=$(OBJS:.o=.d)
 
-.PHONY: all clean
+.PHONY: all clean uefi
 
 all: mineassemble.bin mineassemble.elf
+
+# Build the x86-64 UEFI port. This is intentionally separate from the
+# historical 32-bit Multiboot build above.
+uefi:
+	$(MAKE) -C uefi
 
 # NOTE: linker script must be first dependency
 mineassemble.%: src/%.ld $(OBJS)

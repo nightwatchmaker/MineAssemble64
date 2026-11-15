@@ -3,3 +3,5 @@
 *.iso
 *.bin
 *.elf
+uefi/*.obj
+uefi/BOOTX64.EFI
