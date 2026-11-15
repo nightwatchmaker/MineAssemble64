@@ -97,6 +97,8 @@ finally:
     if process.poll() is None:
         process.kill()
         process.wait()
+    for path in (vars_copy, qmp_path):
+        path.unlink(missing_ok=True)
     if not keep_frames:
-        for path in (vars_copy, qmp_path, screen_path, splash_path, game_path):
+        for path in (screen_path, splash_path, game_path):
             path.unlink(missing_ok=True)
