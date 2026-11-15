@@ -10,6 +10,7 @@ zero:           .float 0.0
 hFov:           .float 90.0
 colTolerance:   .float 0.1
 playerHeight:   .float 1.8
+initial_pitch:  .float -0.25
 dPitch:         .float 0.0
 dYaw:           .float 0.0
 velocity:       .float 0.0, 0.0, 0.0
@@ -144,8 +145,8 @@ init_world:
     movss xmm2, dword ptr [halfWorldSZ]
     cvtsi2ss xmm2, dword ptr [halfWorldSZ]
     call set_pos
-    xorps xmm0, xmm0
-    movaps xmm1, xmm0
+    movss xmm0, dword ptr [initial_pitch]
+    xorps xmm1, xmm1
     call set_view
     add rsp, 32
     pop rdi

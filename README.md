@@ -364,6 +364,8 @@ The original splash bitmap is also converted into the UEFI asset object and
 copied by the x64 `show_splash` routine. The default UEFI runtime starts
 directly in the game to avoid leaving firmware console pixels over the GOP
 framebuffer; the splash routine remains available for a future start screen.
+The initial camera is angled slightly toward the ground so the playable terrain
+is visible immediately after boot.
 
 See `uefi/PORTING.md` for the complete legacy-symbol-to-UEFI replacement map.
 
