@@ -18,6 +18,7 @@ extern uint8_t palette[768];
 extern float dPitch;
 extern float dYaw;
 extern void init_world(void);
+extern void show_splash(void);
 extern void handle_input(void);
 extern void update(float dt);
 extern void draw_frame(void);
@@ -133,6 +134,10 @@ EFI_STATUS uefi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *system_table) {
         return 1;
     }
 
+    show_splash();
+    present_indexed();
+    if (system_table->boot_services->stall)
+        system_table->boot_services->stall(500000);
     init_world();
     print(system_table->con_out, (CHAR16 *)L"GOP ready; x64 UEFI game loop active\r\n");
 

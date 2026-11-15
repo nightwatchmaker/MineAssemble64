@@ -360,6 +360,9 @@ loop. The C reference game logic is compiled for the same x64 ABI, while the
 platform layer presents the indexed render buffer through GOP and translates
 UEFI console input.
 
+The original splash bitmap is also converted into the UEFI asset object and
+copied by the x64 `show_splash` routine before the game loop starts.
+
 To package it as a bootable FAT image for QEMU or physical UEFI hardware:
 
 ```

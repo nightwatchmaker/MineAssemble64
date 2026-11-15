@@ -43,9 +43,10 @@ render_buffer:  .zero 64000
 .globl sinf, cosf, absf, set_pos, set_view
 .globl init_world, get_block, set_block
 .globl handle_input, handle_collision
-.globl ray_dir, face_normal, tex_index, ray_color, reticle_color, draw_frame
+.globl ray_dir, face_normal, tex_index, ray_color, reticle_color, show_splash, draw_frame
 .extern handle_key
 .extern raytrace
+.extern splash_bitmap
 
 /* MS x64 float ABI: XMM0 contains the argument and result. */
 sinf:
@@ -418,6 +419,18 @@ reticle_color:
 .reticle_done_color:
     pop r11
     pop r10
+    ret
+
+/* Copy the original 320x200 splash bitmap into the logical render buffer. */
+show_splash:
+    push rsi
+    push rdi
+    lea rsi, splash_bitmap
+    lea rdi, render_buffer
+    mov ecx, 320 * 200
+    rep movsb
+    pop rdi
+    pop rsi
     ret
 
 /* Render the original 320x200 logical target into vga. */

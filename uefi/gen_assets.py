@@ -31,9 +31,19 @@ for source in (root / "src" / "textures.asm", root / "src" / "vga.asm"):
             if token:
                 blocks[active].append(int(token, 16) if token.lower().startswith("0x") else int(token, 10))
 
+splash = []
+for line in (root / "src" / "splash.asm").read_text().splitlines():
+    for bitmap_line in re.findall(r'"([01]+)"', line):
+        splash.extend(ord(pixel) - ord("0") for pixel in bitmap_line)
+if len(splash) != 320 * 200:
+    raise SystemExit(f"unexpected splash size: {len(splash)}")
+
 with out.open("w") as stream:
     stream.write(".section .data\n")
     for name, values in blocks.items():
         stream.write(f".globl {name}\n{name}:\n")
         for offset in range(0, len(values), 16):
             stream.write("    .byte " + ", ".join(str(v) for v in values[offset:offset + 16]) + "\n")
+    stream.write(".globl splash_bitmap\nsplash_bitmap:\n")
+    for offset in range(0, len(splash), 16):
+        stream.write("    .byte " + ", ".join(str(v) for v in splash[offset:offset + 16]) + "\n")
