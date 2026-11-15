@@ -9,6 +9,7 @@ import subprocess
 import time
 
 root = Path(__file__).resolve().parent
+keep_frames = os.environ.get("KEEP_SMOKE_FRAMES") == "1"
 code = Path(os.environ.get("OVMF_CODE", "/usr/share/edk2/x64/OVMF_CODE.4m.fd"))
 vars_template = Path(os.environ.get("OVMF_VARS", "/usr/share/edk2/x64/OVMF_VARS.4m.fd"))
 if not code.exists() or not vars_template.exists():
@@ -96,5 +97,6 @@ finally:
     if process.poll() is None:
         process.kill()
         process.wait()
-    for path in (vars_copy, qmp_path, screen_path, splash_path, game_path):
-        path.unlink(missing_ok=True)
+    if not keep_frames:
+        for path in (vars_copy, qmp_path, screen_path, splash_path, game_path):
+            path.unlink(missing_ok=True)
