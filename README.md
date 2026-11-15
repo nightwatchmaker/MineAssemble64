@@ -363,6 +363,8 @@ UEFI console input.
 The original splash bitmap is also converted into the UEFI asset object and
 copied by the x64 `show_splash` routine before the game loop starts.
 
+See `uefi/PORTING.md` for the complete legacy-symbol-to-UEFI replacement map.
+
 To package it as a bootable FAT image for QEMU or physical UEFI hardware:
 
 ```
