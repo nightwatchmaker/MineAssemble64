@@ -347,20 +347,23 @@ This project is licensed under the MIT license.
 x86-64 UEFI port
 ----------------
 
-The `uefi` directory contains the new x86-64 UEFI entry layer. Build it with:
+The `uefi` directory contains the x86-64 UEFI port. Build it with:
 
 ```
 make uefi
 ```
 
-This produces `uefi/BOOTX64.EFI`, a PE32+ UEFI application. The entry shim uses
-the Microsoft x64 ABI and the C layer locates the UEFI Graphics Output Protocol
-instead of programming VGA mode `0x13`. The original 32-bit Multiboot renderer,
-PIC/IDT keyboard path, and x87 stack-based calling convention are not silently
-treated as portable: they are the next migration slices. UEFI does not provide
-BIOS video memory or hardware IRQ services to an application, so those parts
-must be replaced with GOP framebuffer writes, UEFI input polling, and UEFI
-timing before the game loop can be enabled.
+This produces `uefi/BOOTX64.EFI`, a PE32+ UEFI application. The UEFI target now
+uses a Microsoft x64 ABI assembly module for world generation, player state,
+math helpers, collision handling, ray setup, ray colors, and the 320x200 render
+loop. The C reference game logic is compiled for the same x64 ABI, while the
+platform layer presents the indexed render buffer through GOP and translates
+UEFI console input.
+
+The legacy 32-bit Multiboot target remains separate. Its GRUB header, VGA mode
+`0x13`, PIC/IDT handlers, PS/2 scan-code path, and fixed 32-bit linker layout
+are not included in the UEFI target. UEFI firmware does not provide BIOS video
+memory or those legacy interrupt services.
 
 Some derived work with compatible licensing is also included:
 

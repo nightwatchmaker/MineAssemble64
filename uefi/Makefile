@@ -18,7 +18,13 @@ entry.obj: entry.s
 main.obj: main.c uefi.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-BOOTX64.EFI: entry.obj main.obj
+reference.obj: ../src/reference.c
+	$(CC) $(CFLAGS) -Wno-sign-compare -c -o $@ $<
+
+game.obj: game.s
+	$(CC) --target=x86_64-pc-win32 -c -o $@ $<
+
+BOOTX64.EFI: entry.obj main.obj reference.obj game.obj
 	$(LD) -flavor link $(LDFLAGS) /out:$@ $^
 
 clean:
