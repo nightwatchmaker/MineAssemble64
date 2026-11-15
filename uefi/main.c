@@ -55,24 +55,25 @@ static void poll_input(EFI_SYSTEM_TABLE *system_table) {
     EFI_INPUT_KEY key;
     while (system_table->con_in->read_key_stroke(system_table->con_in, &key) == EFI_SUCCESS) {
         uint32_t code = 0;
+        uint8_t release_event = 0;
         if (key.unicode_char == 'w' || key.unicode_char == 'W') code = 0x11;
         if (key.unicode_char == 'a' || key.unicode_char == 'A') code = 0x1e;
         if (key.unicode_char == 's' || key.unicode_char == 'S') code = 0x1f;
         if (key.unicode_char == 'd' || key.unicode_char == 'D') code = 0x20;
-        if (key.unicode_char == 'q' || key.unicode_char == 'Q') code = 0x10;
-        if (key.unicode_char == 'e' || key.unicode_char == 'E') code = 0x12;
+        if (key.unicode_char == 'q' || key.unicode_char == 'Q') { code = 0x10; release_event = 1; }
+        if (key.unicode_char == 'e' || key.unicode_char == 'E') { code = 0x12; release_event = 1; }
         if (key.unicode_char == 'i' || key.unicode_char == 'I') code = 0x48;
         if (key.unicode_char == 'k' || key.unicode_char == 'K') code = 0x50;
         if (key.unicode_char == 'j' || key.unicode_char == 'J') code = 0x4b;
         if (key.unicode_char == 'l' || key.unicode_char == 'L') code = 0x4d;
         if (key.unicode_char == ' ') code = 0x39;
-        if (key.unicode_char == 0x1b) code = 0x01;
+        if (key.unicode_char == 0x1b) { code = 0x01; release_event = 1; }
         if (key.scan_code == 1) code = 0x48;
         if (key.scan_code == 2) code = 0x50;
         if (key.scan_code == 3) code = 0x4d;
         if (key.scan_code == 4) code = 0x4b;
         if (code != 0)
-            keys[code] = 0x81;
+            keys[code] = release_event ? 0x80 : 0x81;
     }
 }
 
