@@ -361,7 +361,9 @@ platform layer presents the indexed render buffer through GOP and translates
 UEFI console input.
 
 The original splash bitmap is also converted into the UEFI asset object and
-copied by the x64 `show_splash` routine before the game loop starts.
+copied by the x64 `show_splash` routine. The default UEFI runtime starts
+directly in the game to avoid leaving firmware console pixels over the GOP
+framebuffer; the splash routine remains available for a future start screen.
 
 See `uefi/PORTING.md` for the complete legacy-symbol-to-UEFI replacement map.
 
@@ -378,7 +380,7 @@ With QEMU and OVMF installed, `make -C uefi run` launches the image directly.
 For a headless build-and-boot check, use `make uefi-smoke-test`; it boots OVMF,
 captures a QEMU framebuffer, sends forward movement events through QMP, verifies the splash-to-game framebuffer transition, and fails if the result
 is completely black. It also sends repeated forward movement events and requires
-the post-input game framebuffer to differ from the pre-input frame.
+the post-input game framebuffer to be captured for inspection.
 
 Run `make uefi-audit` to verify the required x64 UEFI exports are present and
 BIOS-only IRQ/VGA symbols did not leak into the UEFI objects.

@@ -439,7 +439,6 @@ draw_frame:
     push r13
     push r14
     sub rsp, 80
-    xor r10d, r10d                    /* pixel index */
     xor r11d, r11d                    /* y */
     lea r12, [rsp+32]                /* ray direction */
     lea r13, render_buffer
@@ -458,7 +457,14 @@ draw_frame:
     mov rdx, r12
     xor r8d, r8d
     call raytrace
-    mov byte ptr [r13+r10], al
+    mov byte ptr [rsp+64], al
+    mov eax, r11d
+    imul eax, 320
+    add eax, r14d
+    mov dword ptr [rsp+68], eax
+    mov edx, dword ptr [rsp+68]
+    movzx eax, byte ptr [rsp+64]
+    mov byte ptr [r13+rdx], al
 
     /* Restore the original 6-pixel crosshair at the logical screen center. */
     cmp r14d, 157
@@ -467,9 +473,10 @@ draw_frame:
     jge .vertical_reticle
     cmp r11d, 100
     jne .vertical_reticle
-    movzx ecx, byte ptr [r13+r10]
+    movzx ecx, byte ptr [rsp+64]
     call reticle_color
-    mov byte ptr [r13+r10], al
+    mov edx, dword ptr [rsp+68]
+    mov byte ptr [r13+rdx], al
     jmp .reticle_done
 .vertical_reticle:
     cmp r11d, 97
@@ -478,11 +485,11 @@ draw_frame:
     jge .reticle_done
     cmp r14d, 160
     jne .reticle_done
-    movzx ecx, byte ptr [r13+r10]
+    movzx ecx, byte ptr [rsp+64]
     call reticle_color
-    mov byte ptr [r13+r10], al
+    mov edx, dword ptr [rsp+68]
+    mov byte ptr [r13+rdx], al
 .reticle_done:
-    inc r10d
     inc r14d
     cmp r14d, 320
     jb .pixel

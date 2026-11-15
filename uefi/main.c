@@ -50,6 +50,24 @@ static int init_graphics(EFI_SYSTEM_TABLE *system_table) {
         return 0;
 
     EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE *mode = g_gop->mode;
+    uint32_t best_mode = mode->mode;
+    uint32_t best_height = mode->info ? mode->info->vertical_resolution : 0;
+    uint32_t mode_index;
+    for (mode_index = 0; mode_index < mode->max_mode; ++mode_index) {
+        uint64_t info_size = 0;
+        EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info = 0;
+        if (g_gop->query_mode(g_gop, mode_index, &info_size, &info) == EFI_SUCCESS && info) {
+            if (info->vertical_resolution > best_height) {
+                best_mode = mode_index;
+                best_height = info->vertical_resolution;
+            }
+            if (system_table->boot_services->free_pool)
+                system_table->boot_services->free_pool(info);
+        }
+    }
+    if (g_gop->set_mode && g_gop->set_mode(g_gop, best_mode) != EFI_SUCCESS)
+        return 0;
+    mode = g_gop->mode;
     if (!mode->info || mode->info->pixel_format > EFI_GRAPHICS_PIXEL_FORMAT_BGR)
         return 0;
 
@@ -157,10 +175,6 @@ EFI_STATUS uefi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *system_table) {
         return 1;
     }
 
-    show_splash();
-    present_indexed();
-    if (system_table->boot_services->stall)
-        system_table->boot_services->stall(500000);
     if (system_table->con_out && system_table->con_out->clear_screen)
         system_table->con_out->clear_screen(system_table->con_out);
     clear_framebuffer();
