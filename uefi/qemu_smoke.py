@@ -17,7 +17,9 @@ if not code.exists() or not vars_template.exists():
 vars_copy = root / "smoke-vars.fd"
 qmp_path = root / "smoke-qmp.sock"
 screen_path = root / "smoke-screen.ppm"
-for path in (vars_copy, qmp_path, screen_path):
+splash_path = root / "smoke-splash.ppm"
+game_path = root / "smoke-game.ppm"
+for path in (vars_copy, qmp_path, screen_path, splash_path, game_path):
     path.unlink(missing_ok=True)
 shutil.copyfile(vars_template, vars_copy)
 
@@ -56,27 +58,34 @@ try:
             return data
 
         command_qmp(1, "qmp_capabilities")
+        time.sleep(1)
+        command_qmp(2, "screendump", {"filename": str(splash_path)})
         time.sleep(8)
-        command_qmp(2, "screendump", {"filename": str(screen_path)})
         for request_id, key in enumerate(("w", "a", "s", "d", "q", "e", "space", "up", "left", "right", "down"), 3):
             command_qmp(request_id, "send-key", {"keys": [{"type": "qcode", "data": key}]})
         time.sleep(1)
-        command_qmp(20, "screendump", {"filename": str(screen_path)})
+        command_qmp(20, "screendump", {"filename": str(game_path)})
         command_qmp(21, "quit")
 
     process.wait(timeout=4)
-    data = screen_path.read_bytes()
-    marker = data.find(b"\n255\n")
-    if marker < 0:
-        raise RuntimeError("QEMU did not produce a valid PPM screenshot")
-    pixels = data[marker + len(b"\n255\n"):]
+    splash = splash_path.read_bytes()
+    game = game_path.read_bytes()
+    marker = game.find(b"\n255\n")
+    splash_marker = splash.find(b"\n255\n")
+    if marker < 0 or splash_marker < 0:
+        raise RuntimeError("QEMU did not produce valid PPM screenshots")
+    pixels = game[marker + len(b"\n255\n"):]
+    splash_pixels = splash[splash_marker + len(b"\n255\n"):]
     nonzero = sum(1 for byte in pixels if byte)
     if nonzero == 0:
         raise RuntimeError("UEFI framebuffer screenshot was completely black")
-    print(f"UEFI smoke test passed: {nonzero} non-black framebuffer bytes")
+    changed = sum(1 for before, after in zip(splash_pixels, pixels) if before != after)
+    if changed == 0:
+        raise RuntimeError("UEFI splash and game screenshots were identical")
+    print(f"UEFI smoke test passed: {nonzero} non-black bytes, {changed} splash-to-game changes")
 finally:
     if process.poll() is None:
         process.kill()
         process.wait()
-    for path in (vars_copy, qmp_path, screen_path):
+    for path in (vars_copy, qmp_path, screen_path, splash_path, game_path):
         path.unlink(missing_ok=True)
