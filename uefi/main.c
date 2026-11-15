@@ -72,11 +72,16 @@ static void poll_input(EFI_SYSTEM_TABLE *system_table) {
 }
 
 static void present_indexed(void) {
+    /* Scale the legacy 320x200 logical framebuffer to the active GOP mode.
+       This also clears the firmware's console pixels outside the old VGA
+       rectangle instead of leaving the boot manager visible behind the game. */
     uint32_t y;
-    for (y = 0; y < 200 && y < g_framebuffer_height; ++y) {
+    for (y = 0; y < g_framebuffer_height; ++y) {
+        uint32_t source_y = (y * 200U) / g_framebuffer_height;
         uint32_t x;
-        for (x = 0; x < 320 && x < g_framebuffer_width; ++x) {
-            uint32_t index = vga[y * 320 + x];
+        for (x = 0; x < g_framebuffer_width; ++x) {
+            uint32_t source_x = (x * 320U) / g_framebuffer_width;
+            uint32_t index = vga[source_y * 320U + source_x];
             uint32_t red = palette[index * 3U] << 2;
             uint32_t green = palette[index * 3U + 1U] << 2;
             uint32_t blue = palette[index * 3U + 2U] << 2;
