@@ -15,6 +15,8 @@ static uint32_t g_pixel_format;
 extern uint8_t *vga;
 extern uint8_t keys[128];
 extern uint8_t palette[768];
+extern float dPitch;
+extern float dYaw;
 extern void init_world(void);
 extern void handle_input(void);
 extern void update(float dt);
@@ -86,6 +88,19 @@ static void present_indexed(void) {
     }
 }
 
+static void clear_input_pulse(void) {
+    keys[0x11] = 0;
+    keys[0x1e] = 0;
+    keys[0x1f] = 0;
+    keys[0x20] = 0;
+    keys[0x48] = 0;
+    keys[0x4b] = 0;
+    keys[0x4d] = 0;
+    keys[0x50] = 0;
+    dPitch = 0.0f;
+    dYaw = 0.0f;
+}
+
 EFI_STATUS uefi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *system_table) {
     (void)image_handle;
 
@@ -104,6 +119,7 @@ EFI_STATUS uefi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *system_table) {
         update(0.016f);
         draw_frame();
         present_indexed();
+        clear_input_pulse();
         if (system_table->boot_services->stall)
             system_table->boot_services->stall(16000);
     }
