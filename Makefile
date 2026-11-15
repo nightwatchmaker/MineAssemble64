@@ -19,7 +19,7 @@ ASMSRCS=$(wildcard src/*.asm)
 OBJS=$(CSRCS:.c=.o) $(ASMSRCS:.asm=.o)
 DEPS=$(OBJS:.o=.d)
 
-.PHONY: all clean uefi uefi-image
+.PHONY: all clean uefi uefi-image uefi-smoke-test
 
 all: mineassemble.bin mineassemble.elf
 
@@ -30,6 +30,9 @@ uefi:
 
 uefi-image:
 	$(MAKE) -C uefi image
+
+uefi-smoke-test:
+	$(MAKE) -C uefi smoke-test
 
 # NOTE: linker script must be first dependency
 mineassemble.%: src/%.ld $(OBJS)
