@@ -344,11 +344,42 @@ tex_index:
 
 /* uint8_t ray_color(int x,int y,int z,vec3 *pos,int tex,int face) */
 ray_color:
-    mov eax, dword ptr [rsp+40]
+    sub rsp, 120
+    mov dword ptr [rsp+80], ecx
+    mov dword ptr [rsp+84], edx
+    mov dword ptr [rsp+88], r8d
+    mov qword ptr [rsp+96], r9
+    mov eax, dword ptr [rsp+160]
+    mov dword ptr [rsp+104], eax
+    mov eax, dword ptr [rsp+168]
+    mov dword ptr [rsp+108], eax
+
+    /* Trace toward the sun and select the dark half of the texture if blocked. */
+    mov rcx, qword ptr [rsp+96]
+    lea rdx, sunDir
+    lea r8, [rsp+32]
+    call raytrace
+    cmp dword ptr [rsp+32], 0
+    je .lit
+    add dword ptr [rsp+104], 256
+.lit:
+    mov eax, dword ptr [rsp+108]
     cmp eax, 2
     je .dirt_texture
     cmp eax, 3
     je .grass_texture
+
+    /* Side blocks at the world ceiling show the grass edge. */
+    cmp dword ptr [rsp+84], 31
+    je .grass_side_texture
+    mov ecx, dword ptr [rsp+80]
+    mov edx, dword ptr [rsp+84]
+    inc edx
+    mov r8d, dword ptr [rsp+88]
+    call get_block
+    cmp eax, 1
+    je .dirt_texture
+.grass_side_texture:
     lea r10, tex_grass_side
     jmp .texture_selected
 .dirt_texture:
@@ -357,8 +388,9 @@ ray_color:
 .grass_texture:
     lea r10, tex_grass
 .texture_selected:
-    mov eax, dword ptr [rsp+32]
+    mov eax, dword ptr [rsp+104]
     movzx eax, byte ptr [r10+rax]
+    add rsp, 120
     ret
 
 /* Render the original 320x200 logical target into vga. */
