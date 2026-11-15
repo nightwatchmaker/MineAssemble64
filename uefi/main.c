@@ -17,8 +17,11 @@ extern uint8_t keys[128];
 extern uint8_t palette[768];
 extern float dPitch;
 extern float dYaw;
+extern float pitch;
+extern float yaw;
 extern void init_world(void);
 extern void show_splash(void);
+extern void set_view(float pitch_value, float yaw_value);
 extern void handle_input(void);
 extern void update(float dt);
 extern void draw_frame(void);
@@ -26,6 +29,12 @@ extern void draw_frame(void);
 static void print(EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *out, CHAR16 *text) {
     if (out && out->output_string)
         out->output_string(out, text);
+}
+
+static void apply_view_input(float pitch_delta, float yaw_delta) {
+    pitch += pitch_delta;
+    yaw += yaw_delta;
+    set_view(pitch, yaw);
 }
 
 static int locate_gop(EFI_SYSTEM_TABLE *system_table) {
@@ -62,16 +71,16 @@ static void poll_input(EFI_SYSTEM_TABLE *system_table) {
         if (key.unicode_char == 'd' || key.unicode_char == 'D') code = 0x20;
         if (key.unicode_char == 'q' || key.unicode_char == 'Q') { code = 0x10; release_event = 1; }
         if (key.unicode_char == 'e' || key.unicode_char == 'E') { code = 0x12; release_event = 1; }
-        if (key.unicode_char == 'i' || key.unicode_char == 'I') { dPitch = 1.0f; code = 0; }
-        if (key.unicode_char == 'k' || key.unicode_char == 'K') { dPitch = -1.0f; code = 0; }
-        if (key.unicode_char == 'j' || key.unicode_char == 'J') { dYaw = 1.0f; code = 0; }
-        if (key.unicode_char == 'l' || key.unicode_char == 'L') { dYaw = -1.0f; code = 0; }
+        if (key.unicode_char == 'i' || key.unicode_char == 'I') { apply_view_input(0.04f, 0.0f); code = 0; }
+        if (key.unicode_char == 'k' || key.unicode_char == 'K') { apply_view_input(-0.04f, 0.0f); code = 0; }
+        if (key.unicode_char == 'j' || key.unicode_char == 'J') { apply_view_input(0.0f, 0.04f); code = 0; }
+        if (key.unicode_char == 'l' || key.unicode_char == 'L') { apply_view_input(0.0f, -0.04f); code = 0; }
         if (key.unicode_char == ' ') code = 0x39;
         if (key.unicode_char == 0x1b) { code = 0x01; release_event = 1; }
-        if (key.scan_code == 1) { dPitch = 1.0f; code = 0; }
-        if (key.scan_code == 2) { dPitch = -1.0f; code = 0; }
-        if (key.scan_code == 3) { dYaw = -1.0f; code = 0; }
-        if (key.scan_code == 4) { dYaw = 1.0f; code = 0; }
+        if (key.scan_code == 1) { apply_view_input(0.04f, 0.0f); code = 0; }
+        if (key.scan_code == 2) { apply_view_input(-0.04f, 0.0f); code = 0; }
+        if (key.scan_code == 3) { apply_view_input(0.0f, -0.04f); code = 0; }
+        if (key.scan_code == 4) { apply_view_input(0.0f, 0.04f); code = 0; }
         if (code != 0)
             keys[code] = release_event ? 0x80 : 0x81;
     }
