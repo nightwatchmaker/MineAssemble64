@@ -115,7 +115,7 @@ struct EFI_BOOT_SERVICES {
 };
 
 struct EFI_SYSTEM_TABLE {
-    char _reserved_0[0x60];
+    char _reserved_0[0x18];
     CHAR16 *firmware_vendor;
     uint32_t firmware_revision;
     EFI_HANDLE console_in_handle;

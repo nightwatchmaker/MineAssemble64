@@ -369,6 +369,8 @@ make uefi-image
 This produces `uefi/mineassemble64.img` with the standard
 `EFI/BOOT/BOOTX64.EFI` path.
 
+With QEMU and OVMF installed, `make -C uefi run` launches the image directly.
+
 The legacy 32-bit Multiboot target remains separate. Its GRUB header, VGA mode
 `0x13`, PIC/IDT handlers, PS/2 scan-code path, and fixed 32-bit linker layout
 are not included in the UEFI target. UEFI firmware does not provide BIOS video
